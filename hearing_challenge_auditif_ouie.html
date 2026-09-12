@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hearing Challenge — Auditif-Ouïe Madagascar</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#07110d;color:#fff;display:flex;justify-content:center;min-height:100vh}
+.card{width:min(92%,520px);margin:24px auto;padding:28px;border-radius:24px;background:#10231b;box-shadow:0 12px 40px #0008;text-align:center}
+h1{font-size:30px;margin:8px 0}.sub{opacity:.8}.freq{font-size:44px;font-weight:700;margin:25px 0}
+button{border:0;border-radius:14px;padding:15px 20px;margin:7px;font-size:17px;font-weight:700;cursor:pointer}
+.start{width:90%;background:#39d98a}.yes{background:#39d98a}.no{background:#ddd}.next{background:#ffd166}
+.hidden{display:none}.score{font-size:64px;font-weight:800}.bar{height:14px;background:#263c32;border-radius:10px;overflow:hidden}.fill{height:100%;width:0;background:#39d98a}
+.small{font-size:13px;opacity:.7;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+<div id="intro">
+<div style="font-size:48px">🎧</div>
+<h1>HEARING CHALLENGE</h1>
+<p class="sub">Jusqu'où va ton audition ?</p>
+<p>Installe-toi dans un endroit calme et utilise des écouteurs à un volume confortable.</p>
+<p class="small">Ceci est un challenge de sensibilisation, pas un diagnostic médical.</p>
+<button class="start" onclick="start()">COMMENCER</button>
+</div>
+
+<div id="test" class="hidden">
+<p>Question <span id="q">1</span>/8</p>
+<div class="freq" id="freq">—</div>
+<button class="start" onclick="play()">🔊 ÉCOUTER</button><br>
+<button class="yes" onclick="answer(true)">👂 J'ENTENDS</button>
+<button class="no" onclick="answer(false)">🤫 JE N'ENTENDS PAS</button>
+<p class="small">Appuie d'abord sur ÉCOUTER, puis choisis ta réponse.</p>
+</div>
+
+<div id="result" class="hidden">
+<div style="font-size:48px">🏆</div>
+<h1>TON HEARING SCORE</h1>
+<div class="score" id="score">0/100</div>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<h2 id="message"></h2>
+<p id="detail"></p>
+<p><b>📍 Auditif-Ouïe Madagascar — Ankerana</b></p>
+<p>Pour connaître réellement ton audition, fais un bilan auditif professionnel.</p>
+</div>
+</div>
+
+<script>
+const tests=[250,500,1000,2000,3000,4000,6000,8000];
+let i=0, points=0, audioCtx,osc,gain;
+
+function start(){
+ document.getElementById('intro').classList.add('hidden');
+ document.getElementById('test').classList.remove('hidden');
+ i=0;points=0;show();
+}
+function show(){
+ document.getElementById('q').textContent=i+1;
+ document.getElementById('freq').textContent=tests[i]+' Hz';
+}
+function play(){
+ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ if(osc) try{osc.stop()}catch(e){}
+ osc=audioCtx.createOscillator(); gain=audioCtx.createGain();
+ osc.frequency.value=tests[i];
+ gain.gain.value=.08;
+ osc.connect(gain).connect(audioCtx.destination);
+ osc.start(); setTimeout(()=>{try{osc.stop()}catch(e){}},700);
+}
+function answer(heard){
+ if(heard) points++;
+ i++;
+ if(i<tests.length) show(); else finish();
+}
+function finish(){
+ let s=Math.round(points/tests.length*100);
+ document.getElementById('test').classList.add('hidden');
+ document.getElementById('result').classList.remove('hidden');
+ document.getElementById('score').textContent=s+'/100';
+ document.getElementById('fill').style.width=s+'%';
+ let m=s>=90?'🟢 Excellente détection':s>=75?'🟢 Bonne détection':s>=60?'🟠 À surveiller':'🔴 Bilan auditif recommandé';
+ document.getElementById('message').textContent=m;
+ document.getElementById('detail').textContent='Score basé uniquement sur tes réponses à ce challenge. Le matériel, le volume et le bruit ambiant peuvent modifier le résultat.';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Mémoire sonore | Auditif-Ouïe Madagascar</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: white;
+      background: linear-gradient(135deg, #061b33, #087f8c, #00b894);
+    }
+
+    .container {
+      max-width: 650px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 25px;
+      background: rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+    }
+
+    p {
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .warning {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 15px;
+      background: #fff3cd;
+      color: #6b4e00;
+      font-weight: bold;
+    }
+
+    button {
+      border: none;
+      border-radius: 15px;
+      padding: 15px 22px;
+      margin: 8px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      background: #0984e3;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: #0652dd;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .sound-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .sound-buttons button {
+      min-width: 110px;
+      background: #6c5ce7;
+    }
+
+    .sound-buttons button:hover {
+      background: #4834d4;
+    }
+
+    #message {
+      min-height: 30px;
+      margin: 20px 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #level {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .back {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: white;
+      background: #2d3436;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .back:hover {
+      background: #000000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>🧠 Mémoire sonore</h1>
+
+    <h2>Auditif-Ouïe Madagascar</h2>
+
+    <p>
+      Écoute attentivement les sons, mémorise leur ordre,
+      puis reproduis la séquence correctement.
+    </p>
+
+    <div class="warning">
+      🔊 Garde le volume faible et confortable, environ 2 à 3 sur 10.
+      Ne mets jamais le son fort. Arrête si tu ressens une gêne.
+    </div>
+
+    <p id="level">Niveau 1</p>
+
+    <button id="startButton" onclick="startGame()">
+      ▶️ Commencer le jeu
+    </button>
+
+    <p id="message">
+      Appuie sur « Commencer le jeu ».
+    </p>
+
+    <div id="soundButtons" class="sound-buttons"></div>
+
+    <a class="back" href="index.html">
+      ⬅️ Retour à l'accueil
+    </a>
+
+  </div>
+
+  <script>
+    const sounds = [
+      {
+        name: "Cloche",
+        url: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+      },
+      {
+        name: "Oiseau",
+        url: "https://actions.google.com/sounds/v1/animals/birds_in_forest.ogg"
+      },
+      {
+        name: "Eau",
+        url: "https://actions.google.com/sounds/v1/water/water_stream.ogg"
+      },
+      {
+        name: "Vent",
+        url: "https://actions.google.com/sounds/v1/weather/wind.ogg"
+      },
+      {
+        name: "Applaudissements",
+        url: "https://actions.google.com/sounds/v1/human_voices/applause.ogg"
+      }
+    ];
+
+    let level = 1;
+    let sequence = [];
+    let userSequence = [];
+    let isPlaying = false;
+
+    const levelText = document.getElementById("level");
+    const message = document.getElementById("message");
+    const soundButtons = document.getElementById("soundButtons");
+    const startButton = document.getElementById("startButton");
+
+    function playSound(index) {
+      const audio = new Audio(sounds[index].url);
+
+      // Volume faible pour protéger l'audition
+      audio.volume = 0.2;
+
+      audio.play().catch(() => {
+        message.textContent =
+          "⚠️ Le son ne peut pas être lu. Vérifie ta connexion Internet.";
+      });
+    }
+
+    function startGame() {
+      sequence = [];
+      userSequence = [];
+      isPlaying = true;
+
+      soundButtons.innerHTML = "";
+      startButton.disabled = true;
+
+      levelText.textContent = "Niveau " + level;
+      message.textContent = "👂 Écoute bien la séquence...";
+
+      const numberOfSounds = level + 2;
+
+      for (let i = 0; i < numberOfSounds; i++) {
+        const randomIndex = Math.floor(Math.random() * sounds.length);
+        sequence.push(randomIndex);
+      }
+
+      playSequence();
+    }
+
+    function playSequence() {
+      let position = 0;
+
+      const interval = setInterval(() => {
+        if (position >= sequence.length) {
+          clearInterval(interval);
+
+          message.textContent =
+            "À toi ! Reproduis les sons dans le même ordre.";
+
+          isPlaying = false;
+          startButton.disabled = false;
+          createSoundButtons();
+
+          return;
+        }
+
+        playSound(sequence[position]);
+        position++;
+      }, 1600);
+    }
+
+    function createSoundButtons() {
+      soundButtons.innerHTML = "";
+
+      sounds.forEach((sound, index) => {
+        const button = document.createElement("button");
+
+        button.textContent = sound.name;
+        button.onclick = () => chooseSound(index);
+
+        soundButtons.appendChild(button);
+      });
+    }
+
+    function chooseSound(index) {
+      if (isPlaying) {
+        return;
+      }
+
+      userSequence.push(index);
+
+      playSound(index);
+
+      const currentPosition = userSequence.length - 1;
+
+      if (userSequence[currentPosition] !== sequence[currentPosition]) {
+        message.textContent =
+          "❌ Mauvaise réponse ! Recommence le niveau.";
+
+        userSequence = [];
+        return;
+      }
+
+      if (userSequence.length === sequence.length) {
+        message.textContent =
+          "🎉 Bravo ! Niveau réussi.";
+
+        level++;
+
+        if (level > 5) {
+          message.textContent =
+            "🏆 Félicitations ! Tu as terminé tous les niveaux.";
+
+          level = 1;
+        }
+
+        userSequence = [];
+        soundButtons.innerHTML = "";
+
+        startButton.disabled = false;
+        startButton.textContent = "▶️ Niveau suivant";
+
+        return;
+      }
+
+      message.textContent =
+        "✅ Correct ! Continue...";
+    }
+  </script>
+
+</body>
+</html>

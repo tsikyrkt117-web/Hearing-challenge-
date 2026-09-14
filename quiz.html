@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Audition | Auditif-Ouïe Madagascar</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef7f6;color:#12345b}
+header{background:linear-gradient(135deg,#07365e,#079b83);color:white;text-align:center;padding:30px 15px}
+header h1{margin:0 0 10px;font-size:28px}
+header p{margin:0}
+main{max-width:700px;margin:30px auto;padding:0 15px}
+.card{background:white;padding:25px;border-radius:20px;box-shadow:0 5px 20px #0001}
+.progress{height:10px;background:#dce7ef;border-radius:20px;margin:18px 0 25px}
+#bar{height:100%;width:0;background:#16a085;border-radius:20px;transition:.3s}
+h2{font-size:22px;line-height:1.4}
+.option{display:block;width:100%;padding:15px;margin:10px 0;border:2px solid #dce7ef;border-radius:12px;background:white;text-align:left;font-size:16px;cursor:pointer;color:#12345b}
+.option:hover{border-color:#16a085}
+.option:disabled{cursor:default}
+.correct{background:#d9f8e8!important;border-color:#16a085!important}
+.wrong{background:#ffe0e0!important;border-color:#d33!important}
+.action{background:#07365e;color:white;border:0;border-radius:25px;padding:14px 25px;font-size:16px;font-weight:bold;cursor:pointer}
+.action:disabled{opacity:.4;cursor:not-allowed}
+#feedback{padding:15px;border-radius:12px;margin:15px 0;line-height:1.5}
+.hidden{display:none}
+.center{text-align:center}
+.score{font-size:50px;font-weight:bold;color:#16a085}
+footer{text-align:center;padding:25px;color:#60758a}
+a{color:#087f8c}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🎧 Quiz Audition</h1>
+<p>Auditif-Ouïe Madagascar</p>
+</header>
+
+<main>
+<div class="card" id="quiz">
+<div style="display:flex;justify-content:space-between;gap:10px">
+<strong id="counter">Question 1 / 10</strong>
+<strong id="points">Score : 0</strong>
+</div>
+
+<div class="progress"><div id="bar"></div></div>
+
+<h2 id="question"></h2>
+<div id="answers"></div>
+<div id="feedback" class="hidden"></div>
+
+<button class="action" id="next" disabled>
+Question suivante →
+</button>
+</div>
+
+<div class="card center hidden" id="result">
+<div style="font-size:50px">🏆</div>
+<h2>Quiz terminé !</h2>
+<div class="score" id="finalScore">0 / 100</div>
+<p id="message"></p>
+<p>Merci d'avoir participé 💚</p>
+<p><small>Ce quiz est éducatif. Il ne remplace pas un examen auditif professionnel.</small></p>
+<button class="action" onclick="restart()">↻ Rejouer</button>
+<br><br>
+<a href="index.html">← Retour à l'accueil</a>
+</div>
+</main>
+
+<footer>
+Auditif-Ouïe Madagascar 💚<br>
+Votre audition, notre priorité.
+</footer>
+
+<script>
+const questions=[
+{
+q:"Quel est l'organe principal de l'audition ?",
+a:["L'œil","L'oreille","Le nez","La bouche"],
+c:1
+},
+{
+q:"Le son se déplace principalement sous forme de…",
+a:["Lumière","Vibrations","Ombres","Couleurs"],
+c:1
+},
+{
+q:"Quelle partie de l'oreille transforme les vibrations en signaux nerveux ?",
+a:["Le pavillon","Le conduit auditif","La cochlée","Le lobe"],
+c:2
+},
+{
+q:"Quel animal peut entendre des sons très graves ?",
+a:["L'éléphant","Le papillon","La poule","Le lézard"],
+c:0
+},
+{
+q:"Quel comportement aide à protéger son audition ?",
+a:["Écouter très fort","S'éloigner des bruits forts","Mettre le volume au maximum","Rester près d'un haut-parleur"],
+c:1
+},
+{
+q:"Le son peut-il se propager dans l'eau ?",
+a:["Non","Oui","Seulement la nuit","Uniquement dans le ciel"],
+c:1
+},
+{
+q:"Quel sens aide à comprendre la parole en complément de l'audition ?",
+a:["La vue","Le goût","L'odorat","Le toucher uniquement"],
+c:0
+},
+{
+q:"Un acouphène est…",
+a:["Une douleur au nez","Un sifflement ou bruit perçu sans source extérieure","Une maladie des yeux","Une couleur sonore"],
+c:1
+},
+{
+q:"Quel professionnel réalise des examens auditifs ?",
+a:["Un mécanicien","Un professionnel de l'audition","Un cuisinier","Un architecte"],
+c:1
+},
+{
+q:"Une bonne audition permet notamment de…",
+a:["Mieux communiquer","Voir dans le noir","Courir automatiquement plus vite","Changer la couleur des yeux"],
+c:0
+}
+];
+
+let current=0;
+let score=0;
+let answered=false;
+
+const $=id=>document.getElementById(id);
+
+function showQuestion(){
+let q=questions[current];
+answered=false;
+
+$("counter").textContent="Question "+(current+1)+" / "+questions.length;
+$("points").textContent="Score : "+score;
+$("bar").style.width=((current+1)/questions.length*100)+"%";
+$("question").textContent=q.q;
+$("answers").innerHTML="";
+$("feedback").className="hidden";
+$("next").disabled=true;
+$("next").textContent=current===9?"Voir mon résultat →":"Question suivante →";
+
+q.a.forEach((answer,index)=>{
+let btn=document.createElement("button");
+btn.className="option";
+btn.textContent=String.fromCharCode(65+index)+". "+answer;
+btn.onclick=()=>choose(index,btn);
+$("answers").appendChild(btn);
+});
+}
+
+function choose(index,clicked){
+if(answered)return;
+answered=true;
+
+let q=questions[current];
+let buttons=document.querySelectorAll(".option");
+
+buttons.forEach((btn,n)=>{
+btn.disabled=true;
+if(n===q.c)btn.classList.add("correct");
+});
+
+if(index===q.c){
+score+=10;
+$("feedback").textContent="✅ Bonne réponse ! +10 points";
+$("feedback").style.background="#d9f8e8";
+}else{
+clicked.classList.add("wrong");
+$("feedback").textContent="❌ Pas tout à fait. La bonne réponse était : "+q.a[q.c];
+$("feedback").style.background="#ffe0e0";
+}
+
+$("feedback").className="";
+$("points").textContent="Score : "+score;
+$("next").disabled=false;
+}
+
+$("next").onclick=()=>{
+if(current===9){
+$("quiz").classList.add("hidden");
+$("result").classList.remove("hidden");
+$("finalScore").textContent=score+" / 100";
+
+$("message").textContent=
+score===100?"Incroyable ! Tu es un champion de l'audition 🏆":
+score>=70?"Bravo ! Tu connais bien l'audition 👏":
+"Bien joué ! Continue à apprendre sur l'audition 💚";
+
+}else{
+current++;
+showQuestion();
+}
+};
+
+function restart(){
+current=0;
+score=0;
+$("result").classList.add("hidden");
+$("quiz").classList.remove("hidden");
+showQuestion();
+}
+
+showQuestion();
+</script>
+</body>
+  </html>
+  
